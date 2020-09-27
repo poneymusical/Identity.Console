@@ -44,7 +44,7 @@ namespace Identity.Console
         private static void ConfigureServices(BaseOptions options)
         {
             var services = new ServiceCollection();
-            
+
             services.AddDbContext<IdentityDbContext<IdentityUser>>(dbContextOptions =>
             {
                 if (options.Sqlite)
@@ -58,16 +58,19 @@ namespace Identity.Console
                 .AddDefaultTokenProviders();
 
             services.AddMediatR(Assembly.GetExecutingAssembly());
-            
+
             services.AddLogging(logging =>
             {
-                logging
-                    // .AddFilter("Microsoft", LogLevel.Warning)
-                    // .AddFilter("Identity.Console", options.MinLogLevel)
-                    .SetMinimumLevel(LogLevel.Warning)
-                    .AddConsole();
+                logging.AddConsole();
+                
+                if (!options.Verbose)
+                    logging
+                        .SetMinimumLevel(LogLevel.Information)
+                        .AddFilter<ConsoleLoggerProvider>("Microsoft", LogLevel.Warning);
+                else
+                    logging.SetMinimumLevel(LogLevel.Trace);
             });
-            
+
             _serviceProvider = services.BuildServiceProvider();
         }
     }
